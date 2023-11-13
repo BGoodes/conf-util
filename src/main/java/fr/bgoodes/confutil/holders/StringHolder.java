@@ -1,19 +1,19 @@
 package fr.bgoodes.confutil.holders;
 
-public class StringHolder extends OptionHolder<String> {
+public class StringHolder extends OptionHolder {
 
     public StringHolder() {}
-    public StringHolder(String key, String defaultValue) {
-        super(key, defaultValue);
+    public StringHolder(String key) {
+        super(key);
     }
 
     @Override
-    public String serialize(String o) {
-        return o;
+    public String serialize(Object o) {
+        return (String) o;
     }
 
     @Override
-    public String deserialize(String s) {
+    public Object deserialize(String s) {
         return s;
     }
 

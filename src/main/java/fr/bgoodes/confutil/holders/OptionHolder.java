@@ -4,30 +4,25 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
-public abstract class OptionHolder<T> {
+public abstract class OptionHolder {
 
-    protected static final Map<Class<?>, Class<? extends OptionHolder<?>>> HOLDERS = new HashMap<>();
+    protected static final Map<Class<?>, Class<? extends OptionHolder>> HOLDERS = new HashMap<>();
 
     static {
         HOLDERS.put(String.class, StringHolder.class);
     }
 
-    private T value;
+    private Object value;
     private String key;
-    private T defaultValue;
 
     protected OptionHolder() {}
-    protected OptionHolder(String key) {
-        this(key, null);
-    }
 
-    public OptionHolder(String key, T defaultValue) {
+    public OptionHolder(String key) {
         this.key = key;
-        this.defaultValue = defaultValue;
-        this.value = defaultValue;
+        this.value = null;
     }
 
-    public static OptionHolder<?> getHolder(Class<?> clazz) {
+    public static OptionHolder getHolder(Class<?> clazz) {
         try {
             return HOLDERS.get(clazz).getConstructor().newInstance();
         } catch (NoSuchMethodException  | InvocationTargetException | InstantiationException | IllegalAccessException e) {
@@ -37,24 +32,19 @@ public abstract class OptionHolder<T> {
         return null;
     }
 
-    public abstract String serialize(T o);
+    public abstract String serialize(Object o);
 
-    public abstract T deserialize(String s);
+    public abstract Object deserialize(String s);
 
-    public T getValue() {
+    public Object getValue() {
         return value;
     }
 
-    //TODO: replace by a setter with a generic type
     public void setValue(Object value) {
-        this.value = (T) value;
+        this.value = value;
     }
 
     public String getKey() {
         return key;
-    }
-
-    public T getDefaultValue() {
-        return defaultValue;
     }
 }

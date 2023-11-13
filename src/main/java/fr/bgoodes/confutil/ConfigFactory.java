@@ -33,18 +33,18 @@ public class ConfigFactory {
         List<Method> getters = findGetters(configClass);
         Map<Method, Method> options = findMatchingSetters(configClass, getters);
 
-        Map<Method, OptionHolder<?>> gettersMap = new HashMap<>();
-        Map<Method, OptionHolder<?>> settersMap = new HashMap<>();
+        Map<Method, OptionHolder> gettersMap = new HashMap<>();
+        Map<Method, OptionHolder> settersMap = new HashMap<>();
 
         fillMaps(options, gettersMap, settersMap);
 
         return new ConfigProxyHandler(gettersMap, settersMap).getInstance(configClass);
     }
 
-    private static void fillMaps(Map<Method, Method> options, Map<Method, OptionHolder<?>> gettersMap, Map<Method, OptionHolder<?>> settersMap) {
+    private static void fillMaps(Map<Method, Method> options, Map<Method, OptionHolder> gettersMap, Map<Method, OptionHolder> settersMap) {
         for (Method g : options.keySet()) {
             // Add getter to gettersMap
-            OptionHolder<?> optionHolder = OptionHolder.getHolder(g.getReturnType());
+            OptionHolder optionHolder = OptionHolder.getHolder(g.getReturnType());
             gettersMap.put(g, optionHolder);
 
             // Add setter to settersMap
