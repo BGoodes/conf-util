@@ -45,8 +45,9 @@ public abstract class OptionHolder<T> {
         return value;
     }
 
-    public void setValue(T value) {
-        this.value = value;
+    //TODO: replace by a setter with a generic type
+    public void setValue(Object value) {
+        this.value = (T) value;
     }
 
     public String getKey() {
