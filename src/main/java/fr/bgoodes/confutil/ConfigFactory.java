@@ -1,14 +1,14 @@
 package fr.bgoodes.confutil;
 
+import fr.bgoodes.confutil.exceptions.ConfigInstantiationException;
+import fr.bgoodes.confutil.exceptions.NoOptionMethodsFoundException;
 import fr.bgoodes.confutil.holders.OptionHolder;
 
-import java.beans.Introspector;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ConfigFactory {
@@ -16,20 +16,16 @@ public class ConfigFactory {
     private static final Pattern GETTER_PATTERN = Pattern.compile("^(get|is)[A-Z][a-zA-Z0-9]*$");
 
     private ConfigFactory() {}
-    public static <T extends Config> T getInstance(Class<T> configClass) {
-
-        T instance = null;
+    public static <T extends Config> T getInstance(Class<T> configClass) throws ConfigInstantiationException {
         try {
-            instance = createInstance(configClass);
-        } catch (Exception e) {
-            e.printStackTrace();
+            return createInstance(configClass);
+        } catch (NoOptionMethodsFoundException e) {
+            throw new ConfigInstantiationException("Failed to create instance for config class " + configClass.getName() + ": " + e.getMessage());
         }
-
-        return instance;
     }
 
 
-    private static <T extends Config> T createInstance(Class<T> configClass) {
+    private static <T extends Config> T createInstance(Class<T> configClass) throws NoOptionMethodsFoundException    {
         List<Method> getters = findGetters(configClass);
         Map<Method, Method> options = findMatchingSetters(configClass, getters);
 
@@ -53,7 +49,7 @@ public class ConfigFactory {
         }
     }
 
-    private static List<Method> findGetters(Class<?> configClass) {
+    private static List<Method> findGetters(Class<?> configClass) throws NoOptionMethodsFoundException {
         ArrayList<Method> methods = new ArrayList<>();
 
         for (Method m : configClass.getDeclaredMethods()) {
@@ -65,7 +61,7 @@ public class ConfigFactory {
             }
         }
 
-        if (methods.isEmpty()) throw new IllegalArgumentException("No options found in class " + configClass.getName());
+        if (methods.isEmpty()) throw new NoOptionMethodsFoundException(configClass.getName());
         return methods;
     }
 

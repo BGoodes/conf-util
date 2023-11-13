@@ -17,4 +17,9 @@ public class StringHolder extends OptionHolder {
         return s;
     }
 
+    @Override
+    public void setValue(Object value) {
+        if (value != null && !(value instanceof String)) throw new IllegalArgumentException("Can only set value to String");
+        super.setValue(value);
+    }
 }
