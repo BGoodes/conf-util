@@ -1,4 +1,4 @@
-package fr.bgoodes.confutil.test;
+package fr.bgoodes.confutil;
 
 import fr.bgoodes.confutil.Config;
 import fr.bgoodes.confutil.Option;

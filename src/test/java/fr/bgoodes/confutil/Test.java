@@ -1,6 +1,4 @@
-package fr.bgoodes.confutil.test;
-
-import fr.bgoodes.confutil.ConfigFactory;
+package fr.bgoodes.confutil;
 
 public class Test {
     public static void main(String[] args) {
