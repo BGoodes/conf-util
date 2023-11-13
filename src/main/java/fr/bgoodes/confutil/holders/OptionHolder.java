@@ -1,16 +1,8 @@
 package fr.bgoodes.confutil.holders;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.HashMap;
-import java.util.Map;
+import fr.bgoodes.confutil.exceptions.DeserializationException;
 
 public abstract class OptionHolder {
-
-    protected static final Map<Class<?>, Class<? extends OptionHolder>> HOLDERS = new HashMap<>();
-
-    static {
-        HOLDERS.put(String.class, StringHolder.class);
-    }
 
     private Object value;
     private String key;
@@ -22,19 +14,9 @@ public abstract class OptionHolder {
         this.value = null;
     }
 
-    public static OptionHolder getHolder(Class<?> clazz) {
-        try {
-            return HOLDERS.get(clazz).getConstructor().newInstance();
-        } catch (NoSuchMethodException  | InvocationTargetException | InstantiationException | IllegalAccessException e) {
-            e.printStackTrace();
-        }
-
-        return null;
-    }
-
     public abstract String serialize(Object o);
 
-    public abstract Object deserialize(String s);
+    public abstract Object deserialize(String s) throws DeserializationException;
 
     public Object getValue() {
         return value;

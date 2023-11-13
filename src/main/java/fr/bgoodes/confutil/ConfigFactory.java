@@ -2,8 +2,12 @@ package fr.bgoodes.confutil;
 
 import fr.bgoodes.confutil.exceptions.ConfigInstantiationException;
 import fr.bgoodes.confutil.exceptions.NoOptionMethodsFoundException;
+import fr.bgoodes.confutil.holders.BooleanHolder;
+import fr.bgoodes.confutil.holders.IntegerHolder;
 import fr.bgoodes.confutil.holders.OptionHolder;
+import fr.bgoodes.confutil.holders.StringHolder;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,6 +17,7 @@ import java.util.regex.Pattern;
 
 public class ConfigFactory {
 
+    private static final Map<Class<?>, Class<? extends OptionHolder>> HOLDERS = new HashMap<>();
     private static final Pattern GETTER_PATTERN = Pattern.compile("^(get|is)[A-Z][a-zA-Z0-9]*$");
 
     private ConfigFactory() {}
@@ -40,7 +45,7 @@ public class ConfigFactory {
     private static void fillMaps(Map<Method, Method> options, Map<Method, OptionHolder> gettersMap, Map<Method, OptionHolder> settersMap) {
         for (Method g : options.keySet()) {
             // Add getter to gettersMap
-            OptionHolder optionHolder = OptionHolder.getHolder(g.getReturnType());
+            OptionHolder optionHolder = getHolder(g.getReturnType());
             gettersMap.put(g, optionHolder);
 
             // Add setter to settersMap
@@ -86,5 +91,30 @@ public class ConfigFactory {
     //TODO: improve this function
     private static String getOptionName(Method getter) {
         return getter.getName().replace("get", "");
+    }
+
+
+    //TODO: find another way to register holders
+    //Holders
+    private static void registerHolder(Class<?> clazz, Class<? extends OptionHolder> holder) {
+        HOLDERS.put(clazz, holder);
+    }
+
+    static {
+        registerHolder(String.class, StringHolder.class);
+        registerHolder(Integer.class, IntegerHolder.class);
+        registerHolder(int.class, IntegerHolder.class);
+        registerHolder(Boolean.class, BooleanHolder.class);
+        registerHolder(boolean.class, BooleanHolder.class);
+    }
+
+    private static OptionHolder getHolder(Class<?> clazz) {
+        try {
+            return HOLDERS.get(clazz).getConstructor().newInstance();
+        } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 }

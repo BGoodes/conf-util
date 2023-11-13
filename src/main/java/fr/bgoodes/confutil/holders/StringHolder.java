@@ -3,9 +3,6 @@ package fr.bgoodes.confutil.holders;
 public class StringHolder extends OptionHolder {
 
     public StringHolder() {}
-    public StringHolder(String key) {
-        super(key);
-    }
 
     @Override
     public String serialize(Object o) {
@@ -19,7 +16,7 @@ public class StringHolder extends OptionHolder {
 
     @Override
     public void setValue(Object value) {
-        if (value != null && !(value instanceof String)) throw new IllegalArgumentException("Can only set value to String");
+        if (value != null && !(value instanceof String)) throw new IllegalArgumentException("Only String values are allowed");
         super.setValue(value);
     }
 }
