@@ -9,7 +9,7 @@
 ## Getting Started
 
 ### Prerequisites
-[...]
+- Java JDK 21 or later
 
 ### Installation
 [...]
