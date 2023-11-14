@@ -4,9 +4,20 @@ import fr.bgoodes.confutil.exceptions.ConfigInstantiationException;
 
 public class Test {
     public static void main(String[] args) throws ConfigInstantiationException {
-        ServerConfig config = ConfigFactory.getInstance(ServerConfig.class);
+        TestConfig config = ConfigFactory.getInstance(TestConfig.class);
 
-        config.setDefaultLanguageCode("fr");
-        System.out.println("RESULT : " + config.getDefaultLanguageCode());
+        config.load();
+
+        config.setIntValue(42);
+        config.setBooleanValue(true);
+        config.setStringValue("Hello World!");
+
+        System.out.println("### Result: ");
+        System.out.println(config.getStringValue());
+        System.out.println(config.getIntValue());
+        System.out.println(config.getIntValue2());
+        System.out.println(config.getBooleanValue());
+
+        config.save();
     }
 }

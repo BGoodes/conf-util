@@ -1,6 +1,7 @@
 package fr.bgoodes.confutil;
 
 import fr.bgoodes.confutil.exceptions.ConfigInstantiationException;
+import fr.bgoodes.confutil.exceptions.DeserializationException;
 import fr.bgoodes.confutil.exceptions.NoOptionMethodsFoundException;
 import fr.bgoodes.confutil.holders.BooleanHolder;
 import fr.bgoodes.confutil.holders.IntegerHolder;
@@ -16,21 +17,19 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 public class ConfigFactory {
-
-    private static final Map<Class<?>, Class<? extends OptionHolder>> HOLDERS = new HashMap<>();
     private static final Pattern GETTER_PATTERN = Pattern.compile("^(get|is)[A-Z][a-zA-Z0-9]*$");
 
     private ConfigFactory() {}
     public static <T extends Config> T getInstance(Class<T> configClass) throws ConfigInstantiationException {
         try {
             return createInstance(configClass);
-        } catch (NoOptionMethodsFoundException e) {
+        } catch (NoOptionMethodsFoundException | DeserializationException e) {
             throw new ConfigInstantiationException("Failed to create instance for config class " + configClass.getName() + ": " + e.getMessage());
         }
     }
 
 
-    private static <T extends Config> T createInstance(Class<T> configClass) throws NoOptionMethodsFoundException    {
+    private static <T extends Config> T createInstance(Class<T> configClass) throws NoOptionMethodsFoundException, DeserializationException {
         List<Method> getters = findGetters(configClass);
         Map<Method, Method> options = findMatchingSetters(configClass, getters);
 
@@ -40,18 +39,6 @@ public class ConfigFactory {
         fillMaps(options, gettersMap, settersMap);
 
         return new ConfigProxyHandler(gettersMap, settersMap).getInstance(configClass);
-    }
-
-    private static void fillMaps(Map<Method, Method> options, Map<Method, OptionHolder> gettersMap, Map<Method, OptionHolder> settersMap) {
-        for (Method g : options.keySet()) {
-            // Add getter to gettersMap
-            OptionHolder optionHolder = getHolder(g.getReturnType());
-            gettersMap.put(g, optionHolder);
-
-            // Add setter to settersMap
-            Method s = options.get(g);
-            if (s != null) settersMap.put(s, optionHolder);
-        }
     }
 
     private static List<Method> findGetters(Class<?> configClass) throws NoOptionMethodsFoundException {
@@ -93,28 +80,25 @@ public class ConfigFactory {
         return getter.getName().replace("get", "");
     }
 
+    private static void fillMaps(Map<Method, Method> options, Map<Method, OptionHolder> gettersMap, Map<Method, OptionHolder> settersMap) throws DeserializationException {
+        for (Method g : options.keySet()) {
+            // Instantiate holder
+            OptionHolder optionHolder = ConfUtil.getHolder(g.getReturnType());
 
-    //TODO: find another way to register holders
-    //Holders
-    private static void registerHolder(Class<?> clazz, Class<? extends OptionHolder> holder) {
-        HOLDERS.put(clazz, holder);
-    }
+            //TODO: clean this
+            if (optionHolder == null)
+                continue;
 
-    static {
-        registerHolder(String.class, StringHolder.class);
-        registerHolder(Integer.class, IntegerHolder.class);
-        registerHolder(int.class, IntegerHolder.class);
-        registerHolder(Boolean.class, BooleanHolder.class);
-        registerHolder(boolean.class, BooleanHolder.class);
-    }
+            // Set default value
+            Option option = g.getAnnotation(Option.class);
+            optionHolder.setValue(optionHolder.deserialize(option.defaultValue()));
 
-    private static OptionHolder getHolder(Class<?> clazz) {
-        try {
-            return HOLDERS.get(clazz).getConstructor().newInstance();
-        } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
-            e.printStackTrace();
+            // Add getter to gettersMap
+            gettersMap.put(g, optionHolder);
+
+            // Add setter to settersMap
+            Method s = options.get(g);
+            if (s != null) settersMap.put(s, optionHolder);
         }
-
-        return null;
     }
 }
