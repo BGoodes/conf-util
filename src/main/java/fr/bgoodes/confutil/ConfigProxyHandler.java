@@ -1,6 +1,7 @@
 package fr.bgoodes.confutil;
 
 import fr.bgoodes.confutil.holders.OptionHolder;
+import fr.bgoodes.confutil.storage.Storage;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
@@ -25,8 +26,8 @@ public class ConfigProxyHandler implements InvocationHandler {
         Map<Method, Method> methods = new HashMap<>();
 
         try {
-            methods.put(Config.class.getMethod("load"), getClass().getDeclaredMethod("load"));
-            methods.put(Config.class.getMethod("save"), getClass().getDeclaredMethod("save"));
+            methods.put(Config.class.getMethod("load", Storage.class), getClass().getDeclaredMethod("load", Storage.class));
+            methods.put(Config.class.getMethod("save", Storage.class), getClass().getDeclaredMethod("save", Storage.class));
         } catch (NoSuchMethodException e) {
             e.printStackTrace();
         }
@@ -55,12 +56,12 @@ public class ConfigProxyHandler implements InvocationHandler {
                 ConfUtil.getDefaultPrimitiveValue(type) : option.getValue();
     }
 
-    private void load() {
-        System.out.println("Loading config...");
+    private void load(Storage storage) {
+       storage.load(gettersMap.values());
     }
 
-    private void save() {
-        System.out.println("Saving config...");
+    private void save(Storage storage) {
+        storage.save(gettersMap.values());
     }
 
     @SuppressWarnings("unchecked")
