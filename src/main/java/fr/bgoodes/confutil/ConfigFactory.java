@@ -92,6 +92,7 @@ public class ConfigFactory {
             // Set default value
             Option option = g.getAnnotation(Option.class);
             optionHolder.setValue(optionHolder.deserialize(option.defaultValue()));
+            optionHolder.setKey(option.key());
 
             // Add getter to gettersMap
             gettersMap.put(g, optionHolder);

@@ -2,11 +2,11 @@ package fr.bgoodes.confutil;
 
 public interface TestConfig extends Config {
 
-    @Option(key = "test.string")
+    @Option(key = "string")
     String getStringValue();
     void setStringValue(String value);
 
-    @Option(key = "test.int")
+    @Option(key = "int")
     int getIntValue();
     void setIntValue(int value);
 
