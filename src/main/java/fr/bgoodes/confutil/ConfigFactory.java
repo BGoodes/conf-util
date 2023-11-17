@@ -5,26 +5,31 @@ import fr.bgoodes.confutil.exceptions.DeserializationException;
 import fr.bgoodes.confutil.exceptions.NoOptionMethodsFoundException;
 import fr.bgoodes.confutil.holders.HolderFactory;
 import fr.bgoodes.confutil.holders.OptionHolder;
+import fr.bgoodes.confutil.storage.YMLStorage;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 public class ConfigFactory {
+    private static final Logger LOGGER = Logger.getLogger(YMLStorage.class.getName());
     private static final Pattern GETTER_PATTERN = Pattern.compile("^(get|is)[A-Z][a-zA-Z0-9]*$");
 
-    private ConfigFactory() {}
+    private ConfigFactory() {
+    }
+
     public static <T extends Config> T getInstance(Class<T> configClass) throws ConfigInstantiationException {
         try {
             return createInstance(configClass);
         } catch (NoOptionMethodsFoundException | DeserializationException e) {
-            throw new ConfigInstantiationException("Failed to create instance for config class " + configClass.getName() + ": " + e.getMessage());
+            throw new ConfigInstantiationException("Failed to create instance for config class " + configClass.getName(), e);
         }
     }
-
 
     private static <T extends Config> T createInstance(Class<T> configClass) throws NoOptionMethodsFoundException, DeserializationException {
         List<Method> getters = findGetters(configClass);
@@ -64,7 +69,8 @@ public class ConfigFactory {
             try {
                 //TODO: check if "is" prefix is used for boolean. If so, don't use "set" prefix.
                 s = configClass.getMethod("set" + optionName, g.getReturnType());
-            } catch (NoSuchMethodException ignored) {}
+            } catch (NoSuchMethodException ignored) {
+            }
 
             setters.put(g, s);
         }
@@ -78,25 +84,32 @@ public class ConfigFactory {
     }
 
     private static void fillMaps(Map<Method, Method> options, Map<Method, OptionHolder> gettersMap, Map<Method, OptionHolder> settersMap) throws DeserializationException {
-        for (Method g : options.keySet()) {
-            // Instantiate holder
-            OptionHolder optionHolder = HolderFactory.getHolder(g.getReturnType());
+        for (Method getterMethod : options.keySet()) {
+            OptionHolder optionHolder = createAndInitializeOptionHolder(getterMethod);
+            if (optionHolder != null) {
+                gettersMap.put(getterMethod, optionHolder);
 
-            //TODO: clean this
-            if (optionHolder == null)
-                continue;
-
-            // Set default value
-            Option option = g.getAnnotation(Option.class);
-            optionHolder.setValue(optionHolder.deserialize(option.defaultValue()));
-            optionHolder.setKey(option.key());
-
-            // Add getter to gettersMap
-            gettersMap.put(g, optionHolder);
-
-            // Add setter to settersMap
-            Method s = options.get(g);
-            if (s != null) settersMap.put(s, optionHolder);
+                Method setterMethod = options.get(getterMethod);
+                if (setterMethod != null) {
+                    settersMap.put(setterMethod, optionHolder);
+                }
+            }
         }
     }
+
+    private static OptionHolder createAndInitializeOptionHolder(Method method) throws DeserializationException {
+        OptionHolder optionHolder = HolderFactory.getHolder(method.getReturnType());
+        if (optionHolder == null) {
+            LOGGER.log(Level.WARNING, "No OptionHolder found for method: " + method.getName());
+            return null;
+        }
+
+        Option option = method.getAnnotation(Option.class);
+        Object deserializedValue = optionHolder.deserialize(option.defaultValue());
+        optionHolder.setValue(deserializedValue);
+        optionHolder.setKey(option.key());
+
+        return optionHolder;
+    }
 }
+

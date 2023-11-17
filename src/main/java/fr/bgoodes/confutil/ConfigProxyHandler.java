@@ -1,5 +1,6 @@
 package fr.bgoodes.confutil;
 
+import fr.bgoodes.confutil.exceptions.StorageException;
 import fr.bgoodes.confutil.holders.OptionHolder;
 import fr.bgoodes.confutil.storage.Storage;
 
@@ -56,11 +57,11 @@ public class ConfigProxyHandler implements InvocationHandler {
                 ConfUtil.getDefaultPrimitiveValue(type) : option.getValue();
     }
 
-    private void load(Storage storage) {
+    private void load(Storage storage) throws StorageException {
        storage.load(gettersMap.values());
     }
 
-    private void save(Storage storage) {
+    private void save(Storage storage) throws StorageException {
         storage.save(gettersMap.values());
     }
 

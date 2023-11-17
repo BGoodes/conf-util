@@ -1,6 +1,7 @@
 package fr.bgoodes.confutil.storage;
 
 import fr.bgoodes.confutil.exceptions.DeserializationException;
+import fr.bgoodes.confutil.exceptions.StorageException;
 import fr.bgoodes.confutil.holders.OptionHolder;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
@@ -24,28 +25,27 @@ public record YMLStorage(File file) implements Storage {
     }
 
     @Override
-    public void load(Collection<OptionHolder> options) {
+    public void load(Collection<OptionHolder> options) throws StorageException {
         try (InputStream in = new FileInputStream(file)) {
             loadFromStream(in, options);
         } catch (IOException e) {
-            throw new RuntimeException("Error loading from file", e);
+            throw new StorageException("Error loading from file: " + file.getPath(), e);
         }
     }
 
     @Override
-    public void save(Collection<OptionHolder> options) {
-        //TODO: improve exception handling
+    public void save(Collection<OptionHolder> options) throws StorageException {
         if (!file.exists() || !file.isFile()) {
             if (file.getParentFile().exists())
-                throw new RuntimeException("The path is not a directory " + file.getParentFile().getAbsolutePath());
+                throw new StorageException("The path is not a directory: " + file.getParentFile().getAbsolutePath(), null);
             if (!file.getParentFile().mkdirs())
-                throw new RuntimeException("Cannot create directory " + file.getParentFile().getAbsolutePath());
+                throw new StorageException("Cannot create directory: " + file.getParentFile().getAbsolutePath(), null);
         }
 
         try (OutputStream out = new FileOutputStream(file)) {
             saveToStream(out, options);
         } catch (IOException e) {
-            throw new RuntimeException("Error saving to file", e);
+            throw new StorageException("Error saving to file: " + file.getPath(), e);
         }
     }
 
