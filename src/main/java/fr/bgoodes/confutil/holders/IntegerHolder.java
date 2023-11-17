@@ -4,8 +4,7 @@ import fr.bgoodes.confutil.exceptions.DeserializationException;
 
 public class IntegerHolder extends OptionHolder {
 
-    public IntegerHolder() {
-    }
+    public IntegerHolder() {}
 
     @Override
     public String serialize(Object o) {
