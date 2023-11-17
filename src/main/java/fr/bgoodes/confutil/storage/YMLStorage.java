@@ -1,36 +1,35 @@
 package fr.bgoodes.confutil.storage;
 
+import fr.bgoodes.confutil.exceptions.DeserializationException;
 import fr.bgoodes.confutil.holders.OptionHolder;
+import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.*;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-public class YMLStorage implements Storage {
-    private final File file;
+public record YMLStorage(File file) implements Storage {
 
-    public YMLStorage(File file) {
-        this.file = file;
-    }
+    private static final DumperOptions DUMPER_OPTIONS = new DumperOptions();
+    private static final Yaml YAML = new Yaml(DUMPER_OPTIONS);
+    private static final Logger LOGGER = Logger.getLogger(YMLStorage.class.getName());
 
-    public File getFile() {
-        return file;
+    static {
+        DUMPER_OPTIONS.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
+        DUMPER_OPTIONS.setPrettyFlow(true);
     }
 
     @Override
     public void load(Collection<OptionHolder> options) {
-        InputStream in;
-        try {
-            in = new FileInputStream(file);
-        } catch (FileNotFoundException e) {
-            //TODO: throw exception if file not exists
-            e.printStackTrace();
-            return;
+        try (InputStream in = new FileInputStream(file)) {
+            loadFromStream(in, options);
+        } catch (IOException e) {
+            throw new RuntimeException("Error loading from file", e);
         }
-
-        loadFromStream(in, options);
     }
 
     @Override
@@ -43,29 +42,33 @@ public class YMLStorage implements Storage {
                 throw new RuntimeException("Cannot create directory " + file.getParentFile().getAbsolutePath());
         }
 
-        OutputStream out;
-        try {
-            out = new FileOutputStream(file);
-        } catch (FileNotFoundException e) {
-            //TODO: throw exception if file not exists
-            e.printStackTrace();
-            return;
+        try (OutputStream out = new FileOutputStream(file)) {
+            saveToStream(out, options);
+        } catch (IOException e) {
+            throw new RuntimeException("Error saving to file", e);
         }
-
-        saveToStream(out, options);
     }
 
-    private void loadFromStream(InputStream in, Collection<OptionHolder> options) {
-        Yaml yaml = new Yaml();
-        Map<String, Object> map = yaml.load(in);
+    private void loadFromStream(InputStream in, Collection<OptionHolder> options) throws IOException {
+        Map<String, Object> map = YAML.load(in);
 
-        if (map != null)
+        if (map != null) {
             for (OptionHolder option : options) {
                 Object value = findValueInMap(map, option.getKey());
-                option.setValue(value);
+                if (value != null) {
+                    try {
+                        option.setValue(option.deserialize(value.toString()));
+                    } catch (DeserializationException e) {
+                        LOGGER.log(Level.WARNING, "Failed to deserialize option: " + option.getKey(), e);
+                    }
+                } else {
+                    LOGGER.log(Level.INFO, "Option not found in YAML: " + option.getKey());
+                }
             }
+        }
     }
 
+    @SuppressWarnings("unchecked")
     private Object findValueInMap(Map<String, Object> map, String key) {
         String[] parts = key.split("\\.");
         Map<String, Object> currentMap = map;
@@ -82,34 +85,27 @@ public class YMLStorage implements Storage {
         return currentMap.get(parts[parts.length - 1]);
     }
 
-    private void saveToStream(OutputStream out, Collection<OptionHolder> options) {
-        Yaml yaml = new Yaml();
+    private void saveToStream(OutputStream out, Collection<OptionHolder> options) throws IOException {
         Map<String, Object> map = new HashMap<>();
 
-        for (OptionHolder option : options)
-            insertValueInMap(map, option.getKey(), option.getValue());
-
-        try {
-            yaml.dump(map, new OutputStreamWriter(out));
-        } finally {
-            try {
-                out.close();
-            } catch (IOException e) {
-                //TODO: improve exception handling
-                e.printStackTrace();
-            }
+        for (OptionHolder option : options) {
+            String serializedValue = option.serialize(option.getValue());
+            insertValueInMap(map, option.getKey(), serializedValue);
         }
+
+        YAML.dump(map, new OutputStreamWriter(out));
     }
 
+    @SuppressWarnings("unchecked")
     private void insertValueInMap(Map<String, Object> map, String key, Object value) {
         String[] parts = key.split("\\.");
         Map<String, Object> currentMap = map;
 
         for (int i = 0; i < parts.length - 1; i++) {
-            currentMap = (Map<String, Object>) currentMap.computeIfAbsent(parts[i], k -> new HashMap<>());
+            String part = parts[i];
+            currentMap = (Map<String, Object>) currentMap.computeIfAbsent(part, k -> new HashMap<>());
         }
 
         currentMap.put(parts[parts.length - 1], value);
     }
-
 }
