@@ -25,6 +25,8 @@ public class HolderFactory {
 
     //TODO: clean this mess
     public static OptionHolder getHolder(Class<?> clazz) {
+
+        //TODO: add exception if no holder found
         if (Enum.class.isAssignableFrom(clazz)) {
             return createEnumHolder(clazz.asSubclass(Enum.class));
         } else {

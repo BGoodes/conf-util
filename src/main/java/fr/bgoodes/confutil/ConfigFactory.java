@@ -26,12 +26,12 @@ public class ConfigFactory {
     public static <T extends Config> T getInstance(Class<T> configClass) throws ConfigInstantiationException {
         try {
             return createInstance(configClass);
-        } catch (NoOptionMethodsFoundException | DeserializationException e) {
+        } catch (NoOptionMethodsFoundException e) {
             throw new ConfigInstantiationException("Failed to create instance for config class " + configClass.getName(), e);
         }
     }
 
-    private static <T extends Config> T createInstance(Class<T> configClass) throws NoOptionMethodsFoundException, DeserializationException {
+    private static <T extends Config> T createInstance(Class<T> configClass) throws NoOptionMethodsFoundException {
         List<Method> getters = findGetters(configClass);
         Map<Method, Method> options = findMatchingSetters(configClass, getters);
 
@@ -83,7 +83,7 @@ public class ConfigFactory {
         return getter.getName().replace("get", "");
     }
 
-    private static void fillMaps(Map<Method, Method> options, Map<Method, OptionHolder> gettersMap, Map<Method, OptionHolder> settersMap) throws DeserializationException {
+    private static void fillMaps(Map<Method, Method> options, Map<Method, OptionHolder> gettersMap, Map<Method, OptionHolder> settersMap) {
         for (Method getterMethod : options.keySet()) {
             OptionHolder optionHolder = createAndInitializeOptionHolder(getterMethod);
             if (optionHolder != null) {
@@ -97,18 +97,22 @@ public class ConfigFactory {
         }
     }
 
-    private static OptionHolder createAndInitializeOptionHolder(Method method) throws DeserializationException {
+    private static OptionHolder createAndInitializeOptionHolder(Method method) {
         OptionHolder optionHolder = HolderFactory.getHolder(method.getReturnType());
         if (optionHolder == null) {
-            LOGGER.log(Level.WARNING, "No OptionHolder found for method: " + method.getName());
+            LOGGER.log(Level.SEVERE, "No OptionHolder found for method: " + method.getName());
             return null;
         }
 
         Option option = method.getAnnotation(Option.class);
-        Object deserializedValue = optionHolder.deserialize(option.defaultValue());
-        optionHolder.setValue(deserializedValue);
-        optionHolder.setKey(option.key());
+        try {
+            Object deserializedValue = optionHolder.deserialize(option.defaultValue());
+            optionHolder.setValue(deserializedValue);
+        } catch (DeserializationException e) {
+            LOGGER.log(Level.WARNING, "Cannot deserialize default value for option : " + option.key());
+        }
 
+        optionHolder.setKey(option.key());
         return optionHolder;
     }
 }

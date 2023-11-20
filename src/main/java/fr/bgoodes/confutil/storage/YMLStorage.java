@@ -59,7 +59,7 @@ public record YMLStorage(File file) implements Storage {
                     try {
                         option.setValue(option.deserialize(value.toString()));
                     } catch (DeserializationException e) {
-                        LOGGER.log(Level.WARNING, "Failed to deserialize option: " + option.getKey(), e);
+                        LOGGER.log(Level.WARNING, "Failed to deserialize option: " + option.getKey());
                     }
                 } else {
                     LOGGER.log(Level.INFO, "Option not found in YAML: " + option.getKey());
