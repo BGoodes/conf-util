@@ -14,11 +14,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 
 public class ConfigFactory {
     private static final Logger LOGGER = Logger.getLogger(YMLStorage.class.getName());
-    private static final Pattern GETTER_PATTERN = Pattern.compile("^(get|is)[A-Z][a-zA-Z0-9]*$");
 
     private ConfigFactory() {
     }
@@ -47,8 +45,7 @@ public class ConfigFactory {
         ArrayList<Method> methods = new ArrayList<>();
 
         for (Method m : configClass.getDeclaredMethods()) {
-            if (GETTER_PATTERN.matcher(m.getName()).matches()) {
-                //TODO : check if "is" prefix is used for boolean.
+            if (isGetter(m)) {
                 if (m.isAnnotationPresent(Option.class)) {
                     methods.add(m);
                 }
@@ -59,6 +56,16 @@ public class ConfigFactory {
         return methods;
     }
 
+    private static boolean isGetter(Method method) {
+        if (!method.isAnnotationPresent(Option.class))
+            return false;
+
+        if (method.getName().startsWith("get") && method.getParameterTypes().length == 0)
+            return true;
+
+        return method.getName().startsWith("is") && method.getReturnType().equals(boolean.class);
+    }
+
     private static Map<Method, Method> findMatchingSetters(Class<?> configClass, List<Method> getters) {
         Map<Method, Method> setters = new HashMap<>();
 
@@ -67,10 +74,8 @@ public class ConfigFactory {
             Method s = null;
 
             try {
-                //TODO: check if "is" prefix is used for boolean. If so, don't use "set" prefix.
-                s = configClass.getMethod("set" + optionName, g.getReturnType());
-            } catch (NoSuchMethodException ignored) {
-            }
+                s = findSetterMethod(configClass, g, optionName);
+            } catch (NoSuchMethodException ignored) {}
 
             setters.put(g, s);
         }
@@ -78,9 +83,16 @@ public class ConfigFactory {
         return setters;
     }
 
-    //TODO: improve this function
+    private static Method findSetterMethod(Class<?> configClass, Method getter, String optionName) throws NoSuchMethodException {
+        if (getter.getReturnType().equals(boolean.class) && getter.getName().startsWith("is"))
+            return configClass.getMethod(optionName, getter.getReturnType());
+        return configClass.getMethod("set" + optionName, getter.getReturnType());
+    }
+
     private static String getOptionName(Method getter) {
-        return getter.getName().replace("get", "");
+        if (getter.getName().startsWith("is"))
+            return getter.getName().substring(2);
+        return getter.getName().substring(3);
     }
 
     private static void fillMaps(Map<Method, Method> options, Map<Method, OptionHolder> gettersMap, Map<Method, OptionHolder> settersMap) {
@@ -99,10 +111,7 @@ public class ConfigFactory {
 
     private static OptionHolder createAndInitializeOptionHolder(Method method) {
         OptionHolder optionHolder = HolderFactory.getHolder(method.getReturnType());
-        if (optionHolder == null) {
-            LOGGER.log(Level.SEVERE, "No OptionHolder found for method: " + method.getName());
-            return null;
-        }
+        if (optionHolder == null) return null;
 
         Option option = method.getAnnotation(Option.class);
         try {
