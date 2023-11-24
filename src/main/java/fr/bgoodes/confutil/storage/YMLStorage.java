@@ -14,14 +14,16 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public record YMLStorage(File file) implements Storage {
-
-    private static final DumperOptions DUMPER_OPTIONS = new DumperOptions();
-    private static final Yaml YAML = new Yaml(DUMPER_OPTIONS);
+    private static final DumperOptions DUMPER_OPTIONS;
+    private static final Yaml YAML;
     private static final Logger LOGGER = Logger.getLogger(YMLStorage.class.getName());
 
     static {
+        DUMPER_OPTIONS = new DumperOptions();
         DUMPER_OPTIONS.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
         DUMPER_OPTIONS.setPrettyFlow(true);
+
+        YAML = new Yaml(DUMPER_OPTIONS);
     }
 
     @Override

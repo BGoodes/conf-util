@@ -30,7 +30,7 @@ public class ConfigProxyHandler implements InvocationHandler {
             methods.put(Config.class.getMethod("load", Storage.class), getClass().getDeclaredMethod("load", Storage.class));
             methods.put(Config.class.getMethod("save", Storage.class), getClass().getDeclaredMethod("save", Storage.class));
         } catch (NoSuchMethodException e) {
-            e.printStackTrace();
+            throw new IllegalStateException("Config method not found", e);
         }
 
         return methods;
@@ -40,16 +40,19 @@ public class ConfigProxyHandler implements InvocationHandler {
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 
         if (configMethods.containsKey(method)) {
-            try {
-                return configMethods.get(method).invoke(this, args);
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                throw e.getCause();
-            }
+            return configMethods.get(method).invoke(this, args);
         }
 
-        if (gettersMap.containsKey(method)) return getValue(gettersMap.get(method), method.getReturnType());
-        settersMap.get(method).setValue(args[0]);
-        return null;
+        if (gettersMap.containsKey(method)) {
+            return getValue(gettersMap.get(method), method.getReturnType());
+        }
+
+        if (settersMap.containsKey(method)) {
+            settersMap.get(method).setValue(args[0]);
+            return null;
+        }
+
+        throw new UnsupportedOperationException("Method not supported: " + method);
     }
 
     private Object getValue(OptionHolder option, Class<?> type) {

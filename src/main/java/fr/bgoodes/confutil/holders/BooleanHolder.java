@@ -25,11 +25,5 @@ public class BooleanHolder extends OptionHolder {
 
         throw new DeserializationException("Cannot deserialize boolean value: " + s);
     }
-
-    @Override
-    public void setValue(Object value) {
-        if (value != null && !(value instanceof Boolean)) throw new IllegalArgumentException("Only Boolean values are allowed");
-        super.setValue(value);
-    }
 }
 

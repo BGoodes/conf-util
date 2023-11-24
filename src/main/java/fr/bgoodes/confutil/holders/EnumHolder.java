@@ -25,12 +25,5 @@ public class EnumHolder<T extends Enum<T>> extends OptionHolder {
             throw new DeserializationException("Cannot deserialize enum value: " + s);
         }
     }
-
-    @Override
-    public void setValue(Object value) {
-        if (value != null && !enumType.isInstance(value))
-            throw new IllegalArgumentException("Value must be an instance of " + enumType.getSimpleName());
-        super.setValue(value);
-    }
 }
 

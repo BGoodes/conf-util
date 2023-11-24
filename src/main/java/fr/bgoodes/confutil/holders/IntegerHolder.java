@@ -22,10 +22,4 @@ public class IntegerHolder extends OptionHolder {
             throw new DeserializationException("Cannot deserialize integer value: " + s);
         }
     }
-
-    @Override
-    public void setValue(Object value) {
-        if (value != null && !(value instanceof Integer)) throw new IllegalArgumentException("Only Integer values are allowed");
-        super.setValue(value);
-    }
 }
