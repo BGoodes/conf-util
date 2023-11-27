@@ -1,12 +1,19 @@
 package fr.bgoodes.confutil.holders;
 
+import fr.bgoodes.confutil.OptionChangeListener;
 import fr.bgoodes.confutil.exceptions.DeserializationException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class OptionHolder {
     private Object value;
     private String key;
+    private final List<OptionChangeListener> listeners;
 
-    protected OptionHolder() {}
+    protected OptionHolder() {
+        this.listeners = new ArrayList<>();
+    }
 
     public abstract String serialize(Object o);
 
@@ -16,8 +23,10 @@ public abstract class OptionHolder {
         return value;
     }
 
-    public void setValue(Object value) {
-        this.value = value;
+    public void setValue(Object newValue) {
+        Object oldValue = this.value;
+        if (notifyChange(oldValue, newValue))
+            this.value = newValue;
     }
 
     public String getKey() {
@@ -26,5 +35,17 @@ public abstract class OptionHolder {
 
     public void setKey(String key) {
         this.key = key;
+    }
+
+    public void addListener(OptionChangeListener listener) {
+        listeners.add(listener);
+    }
+
+    public Boolean notifyChange(Object oldValue, Object newValue) {
+        for (OptionChangeListener listener : listeners) {
+            if (!listener.onChange(key, oldValue, newValue))
+                return false;
+        }
+        return true;
     }
 }

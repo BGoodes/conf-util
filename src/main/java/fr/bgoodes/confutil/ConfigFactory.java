@@ -22,14 +22,18 @@ public class ConfigFactory {
     }
 
     public static <T extends Config> T getInstance(Class<T> configClass) throws ConfigInstantiationException {
+        return getInstance(configClass, null);
+    }
+
+    public static <T extends Config> T getInstance(Class<T> configClass, Map<String, OptionChangeListener> listeners) throws ConfigInstantiationException {
         try {
-            return createInstance(configClass);
+            return createInstance(configClass, listeners);
         } catch (NoOptionMethodsFoundException e) {
             throw new ConfigInstantiationException("Failed to create instance for config class " + configClass.getName(), e);
         }
     }
 
-    private static <T extends Config> T createInstance(Class<T> configClass) throws NoOptionMethodsFoundException {
+    private static <T extends Config> T createInstance(Class<T> configClass, Map<String, OptionChangeListener> listeners) throws NoOptionMethodsFoundException {
         List<Method> getters = findGetters(configClass);
         Map<Method, Method> options = findMatchingSetters(configClass, getters);
 
@@ -37,6 +41,9 @@ public class ConfigFactory {
         Map<Method, OptionHolder> settersMap = new HashMap<>();
 
         fillMaps(options, gettersMap, settersMap);
+
+        if (listeners != null)
+            registerListeners(listeners, settersMap);
 
         return new ConfigProxyHandler(gettersMap, settersMap).getInstance(configClass);
     }
@@ -106,6 +113,14 @@ public class ConfigFactory {
                     settersMap.put(setterMethod, optionHolder);
                 }
             }
+        }
+    }
+
+    private static void registerListeners(Map<String, OptionChangeListener> listeners, Map<Method, OptionHolder> settersMap) {
+        for (OptionHolder o : settersMap.values()) {
+            OptionChangeListener listener = listeners.get(o.getKey());
+            if (listener != null)
+                o.addListener(listener);
         }
     }
 
