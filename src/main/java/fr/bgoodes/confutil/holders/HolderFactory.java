@@ -1,5 +1,11 @@
 package fr.bgoodes.confutil.holders;
 
+import fr.bgoodes.confutil.holders.impl.BooleanHolder;
+import fr.bgoodes.confutil.holders.impl.EnumHolder;
+import fr.bgoodes.confutil.holders.impl.IntegerHolder;
+import fr.bgoodes.confutil.holders.impl.StringHolder;
+import fr.bgoodes.confutil.holders.model.AbstractHolder;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
@@ -8,7 +14,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class HolderFactory {
-    private static final Map<Class<?>, Class<? extends OptionHolder>> HOLDERS = new HashMap<>();
+    private static final Map<Class<?>, Class<? extends AbstractHolder>> HOLDERS = new HashMap<>();
     private static final Logger LOGGER = Logger.getLogger(HolderFactory.class.getName());
 
     static {
@@ -23,18 +29,18 @@ public class HolderFactory {
         registerHolder(boolean.class, BooleanHolder.class);
     }
 
-    public static void registerHolder(Class<?> clazz, Class<? extends OptionHolder> holder) {
+    public static void registerHolder(Class<?> clazz, Class<? extends AbstractHolder> holder) {
         HOLDERS.put(clazz, holder);
     }
 
-    public static OptionHolder getHolder(Class<?> clazz) {
+    public static AbstractHolder getHolder(Class<?> clazz) {
         // Check for enum type
         if (Enum.class.isAssignableFrom(clazz)) {
             return createEnumHolder(clazz.asSubclass(Enum.class));
         }
 
         // Retrieve the corresponding holder class
-        Class<? extends OptionHolder> holderClass = HOLDERS.get(clazz);
+        Class<? extends AbstractHolder> holderClass = HOLDERS.get(clazz);
         if (holderClass == null) {
             LOGGER.log(Level.WARNING, "No OptionHolder found for class: " + clazz.getName());
             return null;
@@ -42,7 +48,7 @@ public class HolderFactory {
 
         // Attempt to create a new instance of the holder
         try {
-            Constructor<? extends OptionHolder> constructor = holderClass.getConstructor();
+            Constructor<? extends AbstractHolder> constructor = holderClass.getConstructor();
             return constructor.newInstance();
         } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
             LOGGER.log(Level.SEVERE, "Error creating an instance of OptionHolder for class: " + clazz.getName(), e);
@@ -51,7 +57,7 @@ public class HolderFactory {
     }
 
 
-    private static <T extends Enum<T>> OptionHolder createEnumHolder(Class<T> enumClass) {
+    private static <T extends Enum<T>> AbstractHolder createEnumHolder(Class<T> enumClass) {
         return new EnumHolder<>(enumClass);
     }
 }

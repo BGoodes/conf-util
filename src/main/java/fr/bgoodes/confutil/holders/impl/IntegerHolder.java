@@ -1,8 +1,9 @@
-package fr.bgoodes.confutil.holders;
+package fr.bgoodes.confutil.holders.impl;
 
 import fr.bgoodes.confutil.exceptions.DeserializationException;
+import fr.bgoodes.confutil.holders.model.AbstractHolder;
 
-public class IntegerHolder extends OptionHolder {
+public class IntegerHolder extends AbstractHolder {
 
     public IntegerHolder() {}
 

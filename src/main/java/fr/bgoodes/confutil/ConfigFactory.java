@@ -4,8 +4,8 @@ import fr.bgoodes.confutil.exceptions.ConfigInstantiationException;
 import fr.bgoodes.confutil.exceptions.DeserializationException;
 import fr.bgoodes.confutil.exceptions.NoOptionMethodsFoundException;
 import fr.bgoodes.confutil.holders.HolderFactory;
-import fr.bgoodes.confutil.holders.OptionHolder;
-import fr.bgoodes.confutil.storage.YMLStorage;
+import fr.bgoodes.confutil.holders.model.AbstractHolder;
+import fr.bgoodes.confutil.storage.impl.YMLStorage;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class ConfigFactory {
+public final class ConfigFactory {
     private static final Logger LOGGER = Logger.getLogger(YMLStorage.class.getName());
 
     private ConfigFactory() {
@@ -37,8 +37,8 @@ public class ConfigFactory {
         List<Method> getters = findGetters(configClass);
         Map<Method, Method> options = findMatchingSetters(configClass, getters);
 
-        Map<Method, OptionHolder> gettersMap = new HashMap<>();
-        Map<Method, OptionHolder> settersMap = new HashMap<>();
+        Map<Method, AbstractHolder> gettersMap = new HashMap<>();
+        Map<Method, AbstractHolder> settersMap = new HashMap<>();
 
         fillMaps(options, gettersMap, settersMap);
 
@@ -102,9 +102,9 @@ public class ConfigFactory {
         return getter.getName().substring(3);
     }
 
-    private static void fillMaps(Map<Method, Method> options, Map<Method, OptionHolder> gettersMap, Map<Method, OptionHolder> settersMap) {
+    private static void fillMaps(Map<Method, Method> options, Map<Method, AbstractHolder> gettersMap, Map<Method, AbstractHolder> settersMap) {
         for (Method getterMethod : options.keySet()) {
-            OptionHolder optionHolder = createAndInitializeOptionHolder(getterMethod);
+            AbstractHolder optionHolder = createAndInitializeOptionHolder(getterMethod);
             if (optionHolder != null) {
                 gettersMap.put(getterMethod, optionHolder);
 
@@ -116,16 +116,16 @@ public class ConfigFactory {
         }
     }
 
-    private static void registerListeners(Map<String, OptionChangeListener> listeners, Map<Method, OptionHolder> settersMap) {
-        for (OptionHolder o : settersMap.values()) {
+    private static void registerListeners(Map<String, OptionChangeListener> listeners, Map<Method, AbstractHolder> settersMap) {
+        for (AbstractHolder o : settersMap.values()) {
             OptionChangeListener listener = listeners.get(o.getKey());
             if (listener != null)
                 o.addListener(listener);
         }
     }
 
-    private static OptionHolder createAndInitializeOptionHolder(Method method) {
-        OptionHolder optionHolder = HolderFactory.getHolder(method.getReturnType());
+    private static AbstractHolder createAndInitializeOptionHolder(Method method) {
+        AbstractHolder optionHolder = HolderFactory.getHolder(method.getReturnType());
         if (optionHolder == null) return null;
 
         Option option = method.getAnnotation(Option.class);

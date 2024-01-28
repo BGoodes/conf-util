@@ -1,24 +1,22 @@
 package fr.bgoodes.confutil;
 
 import fr.bgoodes.confutil.exceptions.StorageException;
-import fr.bgoodes.confutil.holders.OptionHolder;
-import fr.bgoodes.confutil.storage.Storage;
+import fr.bgoodes.confutil.holders.model.AbstractHolder;
+import fr.bgoodes.confutil.storage.model.Storage;
 
 import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class ConfigProxyHandler implements InvocationHandler {
 
     private final Map<Method, Method> configMethods;
-    private final Map<Method, OptionHolder> gettersMap;
-    private final Map<Method, OptionHolder> settersMap;
+    private final Map<Method, AbstractHolder> gettersMap;
+    private final Map<Method, AbstractHolder> settersMap;
 
-    public ConfigProxyHandler(Map<Method, OptionHolder> gettersMap, Map<Method, OptionHolder> settersMap) {
+    public ConfigProxyHandler(Map<Method, AbstractHolder> gettersMap, Map<Method, AbstractHolder> settersMap) {
         this.configMethods = getConfigMethods();
         this.gettersMap = gettersMap;
         this.settersMap = settersMap;
@@ -56,7 +54,7 @@ public class ConfigProxyHandler implements InvocationHandler {
         throw new UnsupportedOperationException("Method not supported: " + method);
     }
 
-    private Object getValue(OptionHolder option, Class<?> type) {
+    private Object getValue(AbstractHolder option, Class<?> type) {
         return option.getValue() == null && ConfUtil.isPrimitive(type) ?
                 ConfUtil.getDefaultPrimitiveValue(type) : option.getValue();
     }

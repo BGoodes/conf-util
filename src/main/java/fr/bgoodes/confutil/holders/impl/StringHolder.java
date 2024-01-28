@@ -1,6 +1,8 @@
-package fr.bgoodes.confutil.holders;
+package fr.bgoodes.confutil.holders.impl;
 
-public class StringHolder extends OptionHolder {
+import fr.bgoodes.confutil.holders.model.AbstractHolder;
+
+public class StringHolder extends AbstractHolder {
 
     public StringHolder() {}
 

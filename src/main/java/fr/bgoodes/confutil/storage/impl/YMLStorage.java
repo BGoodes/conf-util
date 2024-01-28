@@ -1,8 +1,9 @@
-package fr.bgoodes.confutil.storage;
+package fr.bgoodes.confutil.storage.impl;
 
 import fr.bgoodes.confutil.exceptions.DeserializationException;
 import fr.bgoodes.confutil.exceptions.StorageException;
-import fr.bgoodes.confutil.holders.OptionHolder;
+import fr.bgoodes.confutil.holders.model.AbstractHolder;
+import fr.bgoodes.confutil.storage.model.Storage;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
@@ -27,7 +28,7 @@ public record YMLStorage(File file) implements Storage {
     }
 
     @Override
-    public void load(Collection<OptionHolder> options) throws StorageException {
+    public void load(Collection<AbstractHolder> options) throws StorageException {
         try (InputStream in = new FileInputStream(file)) {
             loadFromStream(in, options);
         } catch (IOException e) {
@@ -36,7 +37,7 @@ public record YMLStorage(File file) implements Storage {
     }
 
     @Override
-    public void save(Collection<OptionHolder> options) throws StorageException {
+    public void save(Collection<AbstractHolder> options) throws StorageException {
         if (!file.exists() || !file.isFile()) {
             if (file.getParentFile().exists())
                 throw new StorageException("The path is not a directory: " + file.getParentFile().getAbsolutePath(), null);
@@ -51,11 +52,11 @@ public record YMLStorage(File file) implements Storage {
         }
     }
 
-    private void loadFromStream(InputStream in, Collection<OptionHolder> options) throws IOException {
+    private void loadFromStream(InputStream in, Collection<AbstractHolder> options) throws IOException {
         Map<String, Object> map = YAML.load(in);
 
         if (map != null) {
-            for (OptionHolder option : options) {
+            for (AbstractHolder option : options) {
                 Object value = findValueInMap(map, option.getKey());
                 if (value != null) {
                     try {
@@ -87,10 +88,10 @@ public record YMLStorage(File file) implements Storage {
         return currentMap.get(parts[parts.length - 1]);
     }
 
-    private void saveToStream(OutputStream out, Collection<OptionHolder> options) throws IOException {
+    private void saveToStream(OutputStream out, Collection<AbstractHolder> options) throws IOException {
         Map<String, Object> map = new HashMap<>();
 
-        for (OptionHolder option : options) {
+        for (AbstractHolder option : options) {
             String serializedValue = option.serialize(option.getValue());
             insertValueInMap(map, option.getKey(), serializedValue);
         }

@@ -1,8 +1,9 @@
-package fr.bgoodes.confutil.holders;
+package fr.bgoodes.confutil.holders.impl;
 
 import fr.bgoodes.confutil.exceptions.DeserializationException;
+import fr.bgoodes.confutil.holders.model.AbstractHolder;
 
-public class BooleanHolder extends OptionHolder {
+public class BooleanHolder extends AbstractHolder {
     private static final String[] TRUE_STRINGS = {"true", "1", "y", "yes", "on"};
     private static final String[] FALSE_STRINGS = {"false", "0", "n", "no", "off"};
 

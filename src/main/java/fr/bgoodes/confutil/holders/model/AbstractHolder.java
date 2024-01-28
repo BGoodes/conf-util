@@ -1,4 +1,4 @@
-package fr.bgoodes.confutil.holders;
+package fr.bgoodes.confutil.holders.model;
 
 import fr.bgoodes.confutil.OptionChangeListener;
 import fr.bgoodes.confutil.exceptions.DeserializationException;
@@ -6,12 +6,12 @@ import fr.bgoodes.confutil.exceptions.DeserializationException;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class OptionHolder {
+public abstract class AbstractHolder {
     private Object value;
     private String key;
     private final List<OptionChangeListener> listeners;
 
-    protected OptionHolder() {
+    protected AbstractHolder() {
         this.listeners = new ArrayList<>();
     }
 
