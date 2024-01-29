@@ -1,5 +1,5 @@
-package fr.bgoodes.confutil;
+package fr.bgoodes.confutil
 
-public interface OptionChangeListener {
-    boolean onChange(String key, Object oldValue, Object newValue);
+interface OptionChangeListener {
+    fun onChange(key: String, oldValue: Any?, newValue: Any?): Boolean
 }

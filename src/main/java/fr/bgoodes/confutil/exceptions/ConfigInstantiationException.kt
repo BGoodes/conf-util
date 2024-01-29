@@ -1,7 +1,4 @@
-package fr.bgoodes.confutil.exceptions;
+package fr.bgoodes.confutil.exceptions
 
-public class ConfigInstantiationException extends Exception {
-    public ConfigInstantiationException(String message, Throwable cause) {
-        super(message, cause);
-    }
-}
+class ConfigInstantiationException(message: String, cause: Throwable) :
+    Exception(message, cause)

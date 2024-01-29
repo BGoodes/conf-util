@@ -1,7 +1,4 @@
-package fr.bgoodes.confutil.exceptions;
+package fr.bgoodes.confutil.exceptions
 
-public class StorageException extends Exception {
-    public StorageException(String message, Throwable cause) {
-        super(message, cause);
-    }
-}
+class StorageException(message: String, cause: Throwable) :
+    Exception(message, cause)

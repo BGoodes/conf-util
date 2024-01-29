@@ -1,7 +1,4 @@
-package fr.bgoodes.confutil.exceptions;
+package fr.bgoodes.confutil.exceptions
 
-public class NoOptionMethodsFoundException extends Exception {
-    public NoOptionMethodsFoundException(String className) {
-        super("No option methods annotated with @Option found in class " + className);
-    }
-}
+class NoOptionMethodsFoundException(className: String) :
+    Exception("No option methods annotated with @Option found in class $className")
