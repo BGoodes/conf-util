@@ -1,8 +1,5 @@
 package fr.bgoodes.confutil;
 
-import fr.bgoodes.confutil.holders.*;
-
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 

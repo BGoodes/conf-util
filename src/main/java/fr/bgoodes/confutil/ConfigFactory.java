@@ -53,9 +53,7 @@ public final class ConfigFactory {
 
         for (Method m : configClass.getDeclaredMethods()) {
             if (isGetter(m)) {
-                if (m.isAnnotationPresent(Option.class)) {
-                    methods.add(m);
-                }
+                methods.add(m);
             }
         }
 
