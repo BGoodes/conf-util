@@ -120,7 +120,7 @@ public final class ConfigFactory {
         for (AbstractHolder o : settersMap.values()) {
             OptionChangeListener listener = listeners.get(o.getKey());
             if (listener != null)
-                o.addListener(listener);
+                o.registerListener(listener);
         }
     }
 

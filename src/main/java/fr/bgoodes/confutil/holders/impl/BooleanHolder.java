@@ -12,7 +12,7 @@ public class BooleanHolder extends AbstractHolder {
     @Override
     public String serialize(Object o) {
         if (o == null) return null;
-        return (Boolean) o ? "true" : "false";
+        return (Boolean) o ? TRUE_STRINGS[0] : FALSE_STRINGS[0];
     }
 
     @Override

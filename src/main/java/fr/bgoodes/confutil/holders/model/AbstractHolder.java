@@ -37,7 +37,7 @@ public abstract class AbstractHolder {
         this.key = key;
     }
 
-    public void addListener(OptionChangeListener listener) {
+    public void registerListener(OptionChangeListener listener) {
         listeners.add(listener);
     }
 

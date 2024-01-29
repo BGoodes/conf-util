@@ -10,11 +10,11 @@ public class ConfUtil {
 
     private static final Map<Class<?>, Object> DEFAULT_PRIMITIVE_VALUES = new HashMap<>();
 
+    private ConfUtil() {}
+
     static {
         registerDefaultPrimitiveValues();
     }
-
-    private ConfUtil() {}
 
     private static void registerDefaultPrimitiveValues() {
         DEFAULT_PRIMITIVE_VALUES.put(byte.class, (byte) 0);
